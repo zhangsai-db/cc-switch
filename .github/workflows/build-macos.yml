@@ -42,18 +42,15 @@ jobs:
           key: macos-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
           restore-keys: macos-cargo-
 
-      - name: Remove updater pubkey for unsigned build
-        run: jq 'del(.plugins.updater.pubkey)' src-tauri/tauri.conf.json > /tmp/tauri.conf.tmp && mv /tmp/tauri.conf.tmp src-tauri/tauri.conf.json
-
-      - name: Build (unsigned)
+      - name: Build
         run: pnpm tauri build --target aarch64-apple-darwin
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
           name: CC-Switch-macOS-arm64
-          path: |
-            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
-            src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app
+          path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
           retention-days: 7
           if-no-files-found: error

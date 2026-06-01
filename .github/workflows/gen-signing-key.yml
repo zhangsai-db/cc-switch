@@ -1,0 +1,23 @@
+name: Generate Signing Key (run once, then delete)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2" --locked
+
+      - name: Generate key pair
+        run: |
+          cargo tauri signer generate -w /tmp/tauri.key --ci
+          echo "===== PUBLIC KEY (paste into tauri.conf.json) ====="
+          cat /tmp/tauri.key.pub
+          echo ""
+          echo "===== PRIVATE KEY (save as GitHub Secret: TAURI_SIGNING_PRIVATE_KEY) ====="
+          cat /tmp/tauri.key
