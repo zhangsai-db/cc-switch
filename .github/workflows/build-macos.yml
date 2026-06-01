@@ -42,8 +42,11 @@ jobs:
           key: macos-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
           restore-keys: macos-cargo-
 
+      - name: Remove updater pubkey for unsigned build
+        run: jq 'del(.plugins.updater.pubkey)' src-tauri/tauri.conf.json > /tmp/tauri.conf.tmp && mv /tmp/tauri.conf.tmp src-tauri/tauri.conf.json
+
       - name: Build (unsigned)
-        run: pnpm tauri build --target aarch64-apple-darwin --config '{"plugins":{"updater":{"active":false,"pubkey":""}}}'
+        run: pnpm tauri build --target aarch64-apple-darwin
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
