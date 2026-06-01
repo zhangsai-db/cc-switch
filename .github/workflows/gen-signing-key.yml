@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: read
-  secrets: write
 
 jobs:
   generate:
@@ -17,12 +16,17 @@ jobs:
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2" --locked
 
-      - name: Generate key pair and store private key as secret
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate key pair
+        run: cargo tauri signer generate -w /tmp/tauri.key --ci
+
+      - name: Show public key
         run: |
-          cargo tauri signer generate -w /tmp/tauri.key --ci
-          gh secret set TAURI_SIGNING_PRIVATE_KEY < /tmp/tauri.key
           echo "===== PUBLIC KEY (paste into tauri.conf.json) ====="
           cat /tmp/tauri.key.pub
-          rm -f /tmp/tauri.key /tmp/tauri.key.pub
+
+      - name: Upload private key as artifact (download then add as GitHub Secret, then delete this run)
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-signing-private-key
+          path: /tmp/tauri.key
+          retention-days: 1
