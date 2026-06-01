@@ -3,6 +3,10 @@ name: Generate Signing Key (run once, then delete)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  secrets: write
+
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -13,11 +17,12 @@ jobs:
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2" --locked
 
-      - name: Generate key pair
+      - name: Generate key pair and store private key as secret
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cargo tauri signer generate -w /tmp/tauri.key --ci
+          gh secret set TAURI_SIGNING_PRIVATE_KEY < /tmp/tauri.key
           echo "===== PUBLIC KEY (paste into tauri.conf.json) ====="
           cat /tmp/tauri.key.pub
-          echo ""
-          echo "===== PRIVATE KEY (save as GitHub Secret: TAURI_SIGNING_PRIVATE_KEY) ====="
-          cat /tmp/tauri.key
+          rm -f /tmp/tauri.key /tmp/tauri.key.pub
