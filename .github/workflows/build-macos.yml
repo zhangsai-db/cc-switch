@@ -43,9 +43,7 @@ jobs:
           restore-keys: macos-cargo-
 
       - name: Build (unsigned)
-        run: pnpm tauri build --target aarch64-apple-darwin
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ""
+        run: pnpm tauri build --target aarch64-apple-darwin --config '{"plugins":{"updater":{"active":false}}}'
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
